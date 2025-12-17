@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>HAKODATE 2025 - 完美聯動版</title>
+    <title>HAKODATE 2025 - 最終鎖定版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -23,15 +23,15 @@
         .photo-box { width: 100%; aspect-ratio: 1 / 1; border: 3px solid #000; border-radius: 15px; object-fit: cover; }
         .timeline-line { position: absolute; left: 4.8rem; top: 0; bottom: 0; width: 3px; background: #000; opacity: 0.1; }
         .drag-handle { cursor: grab; }
-        .drag-handle:active { cursor: grabbing; }
         .ghost-card { opacity: 0.4; border: 3px dashed #000 !important; }
+        .flight-fixed { background: linear-gradient(135deg, #fff 0%, #fff 70%, #ffcc00 100%); border: 3px solid #000; }
     </style>
 </head>
 <body class="pb-32">
 
 <div id="app" v-cloak>
     <header class="relative bg-blue-400 h-40 curved-header border-b-4 border-black text-center">
-        <div class="p-8"><h1 class="text-3xl font-black text-white drop-shadow-[3px_3px_0_rgba(0,0,0,1)] italic">HAKODATE 2025</h1></div>
+        <div class="p-8"><h1 class="text-3xl font-black text-white drop-shadow-[3px_3px_0_rgba(0,0,0,1)] italic tracking-tighter">HAKODATE 2025</h1></div>
         <div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-3 px-6 z-20">
             <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
                 :class="['brutal-card p-4 rounded-2xl flex flex-col items-center flex-1 max-w-[100px]', currentTab === tab.id ? 'pink-accent -translate-y-2' : 'bg-white']">
@@ -50,47 +50,63 @@
                 </div>
             </div>
 
-            <div class="relative min-h-[500px] mt-4" id="drag-list">
+            <div class="relative min-h-[500px] mt-4">
                 <div class="timeline-line"></div>
                 
-                <div v-for="(item, index) in filteredSchedule" :key="item.cid" class="mb-6">
-                    <div v-if="index >= 0" class="flex gap-6 items-center mb-4 ml-16 opacity-70">
-                        <div class="flex items-center gap-2 bg-white border-2 border-black px-3 py-1 rounded-full text-[10px] font-black">
-                            <i :data-lucide="item.transMode || 'car'" class="w-3 h-3"></i>
-                            <span>約 {{ item.transTime || '--' }} 分鐘</span>
+                <div v-if="activeDate === '2025-12-28'" class="flex gap-6 items-start mb-8 relative z-10 font-black">
+                    <div class="w-16 text-center text-xl">06:45</div>
+                    <div class="brutal-card flight-fixed flex-1 p-4 rounded-2xl">
+                        <div class="flex justify-between items-center"><span class="text-orange-600 italic">Tigerair IT0236</span><i data-lucide="plane" class="w-4 h-4"></i></div>
+                        <p class="text-sm mt-1">桃園 ➜ 函館 (抵達 11:10)</p>
+                    </div>
+                </div>
+
+                <div id="drag-list">
+                    <div v-for="(item, index) in filteredSchedule" :key="item.cid" class="mb-6">
+                        <div class="flex gap-6 items-center mb-4 ml-16 opacity-70">
+                            <div class="flex items-center gap-2 bg-white border-2 border-black px-3 py-1 rounded-full text-[10px] font-black">
+                                <i :data-lucide="item.transMode || 'car'" class="w-3 h-3"></i>
+                                <span>約 {{ item.transTime || '--' }} 分鐘</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-6 items-start relative z-10">
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <p class="text-2xl font-black leading-none text-blue-600 italic">{{ item.time || '--:--' }}</p>
+                            </div>
+                            <div class="brutal-card flex-1 p-5 rounded-3xl bg-white relative" @click="editItem(item, 'schedules')">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="map-pin" class="w-4 h-4 text-pink-500"></i>
+                                        <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded font-black uppercase">{{ item.category }}</span>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button @click.stop="openMaps(item.title)" class="p-2 bg-blue-100 border-2 border-black rounded-xl"><i data-lucide="navigation" class="w-4 h-4"></i></button>
+                                        <div class="drag-handle p-2 border-2 border-black rounded-xl bg-gray-100"><i data-lucide="grip-vertical" class="w-4 h-4"></i></div>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-black leading-tight">{{ item.title }}</h3>
+                                <div class="mt-2 text-[10px] font-bold space-y-1 opacity-60">
+                                    <p v-if="item.hours">🕒 營業: {{ item.hours }}</p>
+                                    <p v-if="item.ticket">🎫 門票: {{ item.ticket }}</p>
+                                </div>
+                                <img v-if="item.image" :src="item.image" class="photo-box mt-3">
+                                <p v-if="item.note" class="text-sm mt-3 border-t-2 border-black pt-2 italic">特色：{{ item.note }}</p>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="flex gap-6 items-start relative z-10">
-                        <div class="w-16 flex-shrink-0 text-center">
-                            <p class="text-2xl font-black leading-none text-blue-600 italic">{{ item.time || '--:--' }}</p>
-                        </div>
-                        <div class="brutal-card flex-1 p-5 rounded-3xl bg-white relative" @click="editItem(item, 'schedules')">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-pink-500"></i>
-                                    <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded font-black uppercase">{{ item.category }}</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button @click.stop="openMaps(item.title)" class="p-2 bg-blue-100 border-2 border-black rounded-xl"><i data-lucide="navigation" class="w-4 h-4"></i></button>
-                                    <div class="drag-handle p-2 border-2 border-black rounded-xl bg-gray-100"><i data-lucide="grip-vertical" class="w-4 h-4"></i></div>
-                                </div>
-                            </div>
-                            <h3 class="text-xl font-black">{{ item.title }}</h3>
-                            
-                            <div class="mt-2 text-[10px] font-bold space-y-1 opacity-70">
-                                <p v-if="item.hours">🕒 營業時間: {{ item.hours }}</p>
-                                <p v-if="item.ticket">🎫 門票: {{ item.ticket }}</p>
-                            </div>
-
-                            <img v-if="item.image" :src="item.image" class="photo-box mt-3">
-                            <p v-if="item.note" class="text-sm mt-3 border-t-2 border-black pt-2 italic">特色：{{ item.note }}</p>
-                        </div>
+                <div v-if="activeDate === '2026-01-01'" class="flex gap-6 items-start mt-10 relative z-10 font-black">
+                    <div class="w-16 text-center text-xl">12:20</div>
+                    <div class="brutal-card flight-fixed flex-1 p-4 rounded-2xl">
+                        <div class="flex justify-between items-center"><span class="text-orange-600 italic">Tigerair IT0237</span><i data-lucide="plane" class="w-4 h-4 rotate-180"></i></div>
+                        <p class="text-sm mt-1">函館 ➜ 桃園 (抵達 16:00)</p>
                     </div>
                 </div>
             </div>
 
-            <button @click="prepareNew" class="fixed bottom-28 right-8 w-16 h-16 bg-black text-white rounded-full flex items-center justify-center shadow-2xl z-50 hover:scale-110 active:scale-90 transition-transform">
+            <button @click="prepareNew" class="fixed bottom-28 right-8 w-16 h-16 bg-black text-white rounded-full flex items-center justify-center shadow-2xl z-50 brutal-btn active:scale-90 transition-transform">
                 <i data-lucide="plus" class="w-8 h-8"></i>
             </button>
         </section>
@@ -111,13 +127,13 @@
                 </div>
                 <div class="text-sm font-black space-y-1">
                     <p>消耗品: ¥{{taxCalc.sumC}} | 一般品: ¥{{taxCalc.sumG}}</p>
-                    <p class="text-blue-600 text-lg border-t-2 border-black pt-2 mt-2 italic">預計退稅後: ¥{{calcTaxResult}} <button @click="resetTax" class="text-xs underline text-gray-400 ml-2 font-normal">重置</button></p>
+                    <p class="text-blue-600 text-lg border-t-2 border-black pt-2 mt-2 italic font-black">退稅後預估: ¥{{calcTaxResult}} <button @click="resetTax" class="text-xs underline text-gray-400 ml-2">重置</button></p>
                 </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div v-for="item in shoppingList" :key="item.cid" @click="editItem(item, 'shopping')" class="brutal-card rounded-[25px] overflow-hidden bg-white">
                     <img v-if="item.image" :src="item.image" class="photo-box border-none rounded-none">
-                    <div class="p-4 font-black"><p class="text-sm truncate">{{ item.title }}</p><p class="text-xs text-blue-500">¥{{ item.amount }} | {{ item.payer === 'pink' ? '💗':'💙' }}</p></div>
+                    <div class="p-4 font-black"><p class="text-sm truncate leading-tight">{{ item.title }}</p><p class="text-xs text-blue-500 mt-1">¥{{ item.amount }} | {{ item.payer === 'pink' ? '💗':'💙' }}</p></div>
                 </div>
             </div>
         </section>
@@ -125,28 +141,28 @@
         <section v-if="currentTab === 'cost'" class="space-y-6">
             <div class="brutal-card p-6 rounded-[40px] bg-white border-4 shadow-[10px_10px_0px_#000]">
                 <div class="pink-accent p-4 rounded-2xl border-2 border-black text-center font-black mb-6">
-                    <p class="text-sm italic opacity-70 uppercase">{{ splitReport.message }}</p>
+                    <p class="text-sm italic opacity-70">{{ splitReport.message }}</p>
                     <p class="text-4xl italic">${{ Math.round(splitReport.diff) }}</p>
                 </div>
                 <div class="grid grid-cols-2 gap-4 font-black">
                     <div class="bg-pink-50 border-2 border-black rounded-2xl p-4 text-center">
-                        <p class="text-xs opacity-50">💗 個人總花費</p>
-                        <p class="text-2xl text-pink-600">${{ Math.round(splitReport.pinkFinal) }}</p>
+                        <p class="text-xs opacity-50 uppercase">💗 個人台幣總花費</p>
+                        <p class="text-2xl text-pink-600 italic">${{ Math.round(splitReport.pinkFinal) }}</p>
                     </div>
                     <div class="bg-blue-50 border-2 border-black rounded-2xl p-4 text-center">
-                        <p class="text-xs opacity-50">💙 個人總花費</p>
-                        <p class="text-2xl text-blue-600">${{ Math.round(splitReport.blueFinal) }}</p>
+                        <p class="text-xs opacity-50 uppercase">💙 個人台幣總花費</p>
+                        <p class="text-2xl text-blue-600 italic">${{ Math.round(splitReport.blueFinal) }}</p>
                     </div>
                 </div>
             </div>
             <div class="space-y-4">
                 <div v-for="c in costs" :key="c.cid" @click="editItem(c, 'costs')" class="brutal-card p-4 rounded-3xl flex gap-4 items-center bg-white">
-                    <img v-if="c.image" :src="c.image" class="w-16 h-16 object-cover border-2 border-black rounded-xl">
-                    <div v-else class="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center font-black" :class="c.payer === 'pink' ? 'bg-pink-100':'bg-blue-100'">{{ c.payer[0].toUpperCase() }}</div>
+                    <img v-if="c.image" :src="c.image" class="w-16 h-16 object-cover border-2 border-black rounded-xl flex-shrink-0">
+                    <div v-else class="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center font-black flex-shrink-0" :class="c.payer === 'pink' ? 'bg-pink-100':'bg-blue-100'">{{ c.payer[0].toUpperCase() }}</div>
                     <div class="flex-1 min-w-0 font-black">
-                        <div class="flex justify-between items-center"><h3 class="truncate text-lg">{{ c.title }}</h3><span class="text-[10px] border-2 border-black px-2 rounded-full">{{ c.payMethod }}</span></div>
+                        <div class="flex justify-between items-center"><h3 class="truncate text-lg leading-tight italic underline decoration-blue-200">{{ c.title }}</h3><span class="text-[8px] border-2 border-black px-2 rounded-full">{{ c.payMethod }}</span></div>
                         <p class="text-xs opacity-40 mt-1">總額: {{ c.currency === 'JPY' ? '¥':'$' }}{{ c.amount }}</p>
-                        <p class="text-[10px] text-pink-500 italic">負擔額: ${{ Math.round((c.currency === 'JPY' ? c.amount * 0.21 : c.amount) / (c.isSplit ? 2 : 1)) }}</p>
+                        <p class="text-[10px] text-pink-500 italic">個人負擔: ${{ Math.round((c.currency === 'JPY' ? c.amount * 0.21 : c.amount) / (c.isSplit ? 2 : 1)) }}</p>
                     </div>
                 </div>
             </div>
@@ -159,43 +175,29 @@
                 <div class="space-y-4">
                     <div class="flex flex-col items-center">
                         <img v-if="form.image" :src="form.image" class="photo-box mb-3">
-                        <button @click="$refs.fileInp.click()" class="brutal-card w-full py-2 bg-yellow-300 font-black text-xs">📷 新增照片回憶</button>
+                        <button @click="$refs.fileInp.click()" class="brutal-card w-full py-2 bg-yellow-300 font-black text-xs">📷 照片紀錄</button>
                         <input type="file" ref="fileInp" class="hidden" @change="handleFileUpload" accept="image/*">
                     </div>
-                    
                     <div class="flex gap-2">
-                        <select v-model="form.category" class="flex-1 font-black">
-                            <option value="景點">📍 景點</option>
-                            <option value="住宿">🏨 住宿</option>
-                            <option value="美食">🍜 美食</option>
-                            <option value="購物">🛍️ 購物</option>
-                            <option value="航班">✈️ 航班</option>
-                            <option value="其他">🌀 其他</option>
-                        </select>
-                        <select v-if="currentTab === 'shop' || currentTab === 'cost'" v-model="form.currency" class="w-24 font-black"><option value="JPY">¥ JPY</option><option value="TWD">$ TWD</option></select>
+                        <select v-model="form.category" class="flex-1 font-black"><option v-for="cat in activeCats" :value="cat">{{cat}}</option></select>
+                        <select v-if="currentTab !== 'schedule'" v-model="form.currency" class="w-24 font-black"><option value="JPY">¥ JPY</option><option value="TWD">$ TWD</option></select>
                     </div>
-
-                    <input v-model="form.title" placeholder="行程/項目名稱">
+                    <input v-model="form.title" placeholder="名稱">
                     
                     <div v-if="currentTab === 'schedule'" class="space-y-4">
-                        <input v-model="form.hours" placeholder="營業時間 (景點/美食/購物)">
-                        <input v-if="form.category === '景點'" v-model="form.ticket" placeholder="門票費用">
+                        <input v-model="form.hours" placeholder="營業/入住時間">
+                        <input v-if="form.category === '景點'" v-model="form.ticket" placeholder="門票資訊">
                         <div class="grid grid-cols-2 gap-3">
-                            <input v-model="form.time" type="time" placeholder="開始時間">
-                            <select v-model="form.transMode" class="font-black">
-                                <option value="car">🚗 開車</option>
-                                <option value="walking">🚶 步行</option>
-                                <option value="bus">🚌 大眾運輸</option>
-                            </select>
+                            <input v-model="form.time" type="time">
+                            <select v-model="form.transMode" class="font-black"><option value="car">🚗 開車</option><option value="walking">🚶 步行</option><option value="bus">🚌 大眾運輸</option></select>
                         </div>
-                        <input v-model.number="form.transTime" type="number" placeholder="交通時間 (分鐘)">
+                        <input v-model.number="form.transTime" type="number" placeholder="交通所需分鐘">
                     </div>
 
                     <div v-if="currentTab !== 'schedule'" class="grid grid-cols-2 gap-3">
                         <input v-model.number="form.amount" type="number" placeholder="金額">
                         <select v-model="form.payMethod" class="font-black"><option value="現金">💵 現金</option><option value="刷卡">💳 刷卡</option></select>
                     </div>
-
                     <div v-if="currentTab !== 'schedule'" class="grid grid-cols-2 gap-3 font-black text-[10px] bg-gray-50 p-2 border-2 border-black rounded-xl items-center">
                         <div class="flex gap-2"><span>支付人:</span><label><input type="radio" v-model="form.payer" value="pink"> 💗</label><label><input type="radio" v-model="form.payer" value="blue"> 💙</label></div>
                         <label class="text-right">平攤? <input type="checkbox" v-model="form.isSplit" class="w-4 h-4"></label>
@@ -203,9 +205,9 @@
 
                     <textarea v-model="form.note" placeholder="特色與備註..." rows="2"></textarea>
                     
-                    <div class="flex gap-3">
+                    <div class="flex gap-3 pt-2">
                         <button v-if="isEditing" @click="delItem" class="brutal-card bg-red-400 p-3 rounded-xl flex-1 font-black">刪除</button>
-                        <button @click="saveToCloud" class="brutal-card pink-accent p-3 rounded-xl flex-[2] font-black italic">儲存同步</button>
+                        <button @click="saveToCloud" class="brutal-card pink-accent p-3 rounded-xl flex-[2] font-black italic">儲存數據</button>
                     </div>
                 </div>
             </div>
@@ -236,21 +238,10 @@ createApp({
         const initDraggable = () => {
             nextTick(() => {
                 const el = document.getElementById('drag-list');
-                if (el) {
-                    Sortable.create(el, {
-                        handle: '.drag-handle',
-                        animation: 150,
-                        ghostClass: 'ghost-card',
-                        onEnd: (evt) => {
-                            const items = [...filteredSchedule.value];
-                            const [movedItem] = items.splice(evt.oldIndex, 1);
-                            items.splice(evt.newIndex, 0, movedItem);
-                            items.forEach((item, index) => {
-                                db.ref(`schedules/${item.cid}`).update({ order: index });
-                            });
-                        }
-                    });
-                }
+                if (el) { Sortable.create(el, { handle: '.drag-handle', animation: 150, ghostClass: 'ghost-card', onEnd: (evt) => {
+                    const items = [...filteredSchedule.value]; const [movedItem] = items.splice(evt.oldIndex, 1); items.splice(evt.newIndex, 0, movedItem);
+                    items.forEach((item, index) => { db.ref(`schedules/${item.cid}`).update({ order: index }); });
+                }}); }
             });
         };
 
@@ -284,17 +275,10 @@ createApp({
             return Math.round(r);
         });
 
-        const addTax = () => { if(taxCalc.value.input){ if(taxCalc.value.type==='C') taxCalc.value.sumC+=taxCalc.value.input; else taxCalc.value.sumG+=taxCalc.value.input; taxCalc.value.input=null; } };
-        const resetTax = () => { taxCalc.value.sumC=0; taxCalc.value.sumG=0; };
-
-        const prepareNew = () => {
-            isEditing.value = false;
-            form.value = { title:'', time:'12:00', amount:null, category:'景點', currency:'JPY', payer:'pink', isSplit: true, payMethod:'現金', image: null, transMode: 'car', transTime: 10 };
-            showModal.value = true;
-        };
-
+        const prepareNew = () => { isEditing.value = false; form.value = { title:'', time:'12:00', amount:null, category:'景點', currency:'JPY', payer:'pink', isSplit: true, payMethod:'現金', image: null, transMode: 'car', transTime: 10 }; showModal.value = true; };
+        
         const saveToCloud = () => {
-            if(!form.value.title) return alert('請輸入名稱');
+            if(!form.value.title) return alert('名稱不可為空');
             const path = (currentTab.value === 'schedule') ? 'schedules' : (currentTab.value === 'shop' ? 'shopping' : 'costs');
             if(isEditing.value) { db.ref(`${currentEditPath.value}/${form.value.cid}`).update({...form.value, date: activeDate.value}); }
             else { 
@@ -304,12 +288,11 @@ createApp({
             showModal.value = false;
         };
 
-        const editItem = (item, path) => { isEditing.value = true; currentEditPath.value = path; form.value = { ...item }; showModal.value = true; };
-        const delItem = () => { if(confirm('確定要刪除這筆資料嗎？此動作無法復原。')) { db.ref(`${currentEditPath.value}/${form.value.cid}`).remove(); showModal.value = false; } };
+        const delItem = () => { if(confirm('確定要刪除嗎？')) { db.ref(`${currentEditPath.value}/${form.value.cid}`).remove(); showModal.value = false; } };
 
         watch([currentTab, showModal, activeDate], () => nextTick(() => { lucide.createIcons(); initDraggable(); }));
 
-        return { currentTab, activeDate, showModal, isEditing, form, schedules, costs, shoppingList, splitReport, taxCalc, calcTaxResult, addTax, resetTax, prepareNew, saveToCloud, editItem, delItem, handleFileUpload, openMaps: (n) => window.open(`http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(n)}`, '_blank'), tabs: [{id:'schedule',icon:'map'}, {id:'shop',icon:'shopping-basket'}, {id:'cost',icon:'banknote'}], dates: [{day:'Sun',date:'28',fullDate:'2025-12-28'},{day:'Mon',date:'29',fullDate:'2025-12-29'},{day:'Tue',date:'30',fullDate:'2025-12-30'},{day:'Wed',date:'31',fullDate:'2025-12-31'},{day:'Thu',date:'01',fullDate:'2026-01-01'}], filteredSchedule: computed(() => schedules.value.filter(s => s.date === activeDate.value).sort((a,b) => a.order - b.order)) };
+        return { currentTab, activeDate, showModal, isEditing, form, schedules, costs, shoppingList, splitReport, taxCalc, calcTaxResult, addTax: () => { if(taxCalc.value.input){ if(taxCalc.value.type==='C') taxCalc.value.sumC+=taxCalc.value.input; else taxCalc.value.sumG+=taxCalc.value.input; taxCalc.value.input=null; } }, resetTax: () => { taxCalc.value.sumC=0; taxCalc.value.sumG=0; }, prepareNew, saveToCloud, editItem: (item, path) => { isEditing.value = true; currentEditPath.value = path; form.value = { ...item }; showModal.value = true; }, delItem, handleFileUpload, openMaps: (n) => window.open(`http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(n)}`, '_blank'), activeCats:['景點','住宿','美食','購物','航班','其他'], tabs: [{id:'schedule',icon:'map'}, {id:'shop',icon:'shopping-basket'}, {id:'cost',icon:'banknote'}], dates: [{day:'Sun',date:'28',fullDate:'2025-12-28'},{day:'Mon',date:'29',fullDate:'2025-12-29'},{day:'Tue',date:'30',fullDate:'2025-12-30'},{day:'Wed',date:'31',fullDate:'2025-12-31'},{day:'Thu',date:'01',fullDate:'2026-01-01'}], filteredSchedule: computed(() => schedules.value.filter(s => s.date === activeDate.value).sort((a,b) => a.order - b.order)) };
     }
 }).mount('#app');
 </script>
