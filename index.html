@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>函館冬之旅 - 時間軸版</title>
+    <title>函館冬之旅行程>ㄒ>ㄒㄧ>ㄒㄧ
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,29 +11,58 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #E0F2FE; margin: 0; padding: 0; }
+        :root {
+            --app-max-width: 430px; /* 鎖定手機寬度比例 */
+        }
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #f0f9ff; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; /* 電腦版居中 */
+        }
+        #app {
+            width: 100%;
+            max-width: var(--app-max-width);
+            min-height: 100dvh; /* 動態視窗高度 */
+            background-color: #E0F2FE;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
         [v-cloak] { display: none; }
         .brutal-card { background: white; border: 3px solid #000; box-shadow: 4px 4px 0px #000; transition: all 0.1s; }
         .brutal-btn:active { box-shadow: 0px 0px 0px #000; transform: translate(2px, 2px); }
         .pink-accent { background-color: #FFB7C5; }
         .tab-active { background-color: #FFB7C5 !important; transform: translateY(-3px); }
-        .curved-header { border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; }
+        .curved-header { border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; padding-top: env(safe-area-inset-top); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         input, select, textarea { border: 2px solid #000 !important; border-radius: 10px !important; padding: 6px 10px; font-weight: bold; width: 100%; font-size: 14px; }
-        .safe-pb { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
         
-        /* 時間軸裝飾線 */
-        .timeline-line { position: absolute; left: 2.25rem; top: 0; bottom: 0; width: 3px; background: #000; z-index: 0; }
+        /* 時間軸裝飾 */
+        .timeline-line { position: absolute; left: 2.25rem; top: 0; bottom: 0; width: 3px; background: #000; z-index: 0; opacity: 0.15; }
+        
+        /* 讓底部按鈕考慮安全區域 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: var(--app-max-width);
+            padding: 20px 32px calc(24px + env(safe-area-inset-bottom));
+            background: linear-gradient(to top, #E0F2FE 80%, transparent);
+            z-index: 50;
+        }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body>
 
 <div id="app" v-cloak>
-    <header class="relative bg-blue-400 h-36 curved-header border-b-4 border-black">
-        <div class="p-6">
-            <h1 class="text-xl font-black text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)] uppercase">HAKODATE TIMELINE</h1>
+    <header class="relative bg-blue-400 h-32 curved-header border-b-4 border-black flex-shrink-0">
+        <div class="px-6 pt-4">
+            <h1 class="text-xl font-black text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)] uppercase italic">HAKODATE TRIPPP</h1>
         </div>
-        <div class="absolute -bottom-4 left-0 right-0 flex justify-center gap-2 px-4 z-20">
+        <div class="absolute -bottom-4 left-0 right-0 flex justify-center gap-2 px-6 z-20">
             <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
                 :class="['brutal-card p-3 rounded-2xl flex flex-col items-center flex-1', currentTab === tab.id ? 'tab-active' : 'bg-white']">
                 <i :data-lucide="tab.icon" class="w-5 h-5"></i>
@@ -41,90 +70,83 @@
         </div>
     </header>
 
-    <main class="mt-8 px-4 safe-pb">
-        <section v-if="currentTab === 'schedule'" class="relative space-y-8">
+    <main class="mt-8 px-4 flex-1 overflow-y-auto no-scrollbar pb-32">
+        <section v-if="currentTab === 'schedule'" class="relative space-y-6">
             <div class="flex overflow-x-auto gap-3 py-2 no-scrollbar relative z-10">
                 <div v-for="d in dates" :key="d.fullDate" @click="activeDate = d.fullDate"
-                    :class="['flex-shrink-0 brutal-card w-14 h-20 rounded-xl flex flex-col items-center justify-center cursor-pointer', activeDate === d.fullDate ? 'pink-accent' : 'bg-white']">
-                    <span class="text-[10px] font-black uppercase">{{ d.day }}</span>
-                    <span class="text-xl font-black">{{ d.date }}</span>
+                    :class="['flex-shrink-0 brutal-card w-14 h-18 rounded-xl flex flex-col items-center justify-center cursor-pointer', activeDate === d.fullDate ? 'pink-accent' : 'bg-white']">
+                    <span class="text-[9px] font-black uppercase opacity-60">{{ d.day }}</span>
+                    <span class="text-lg font-black">{{ d.date }}</span>
                 </div>
             </div>
 
-            <div class="relative min-h-[400px]">
-                <div class="timeline-line opacity-20"></div>
+            <div class="relative min-h-[300px]">
+                <div class="timeline-line"></div>
 
-                <div v-if="activeDate === '2025-12-28'" class="flex gap-4 items-start mb-8 relative z-10">
+                <div v-if="activeDate === '2025-12-28'" class="flex gap-4 items-start mb-6 relative z-10">
                     <div class="w-16 flex-shrink-0 text-center">
                         <p class="text-lg font-black leading-none">06:45</p>
-                        <p class="text-[10px] font-bold opacity-40">START</p>
+                        <p class="text-[8px] font-bold opacity-40">START</p>
                     </div>
-                    <div class="brutal-card flex-1 p-4 rounded-2xl bg-[#FFD700]">
+                    <div class="brutal-card flex-1 p-3 rounded-2xl bg-[#FFD700]">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="font-black text-xs">🐯 Tigerair IT0236</span>
-                            <i data-lucide="plane" class="w-4 h-4"></i>
+                            <span class="font-black text-[10px]">🐯 Tigerair IT0236</span>
+                            <i data-lucide="plane" class="w-3 h-3"></i>
                         </div>
-                        <h3 class="text-lg font-black">桃園 TPE ➜ 函館 HKD</h3>
-                        <p class="text-[10px] font-bold mt-1">預計抵達時間 11:10</p>
+                        <h3 class="text-md font-black italic">TPE ➜ HKD</h3>
                     </div>
                 </div>
 
-                <div v-for="item in filteredSchedule" :key="item.cid" class="flex gap-4 items-start mb-8 relative z-10">
+                <div v-for="item in filteredSchedule" :key="item.cid" class="flex gap-4 items-start mb-6 relative z-10">
                     <div class="w-16 flex-shrink-0 text-center">
                         <p class="text-lg font-black leading-none">{{ item.time }}</p>
-                        <div class="w-2 h-2 bg-black rounded-full mx-auto mt-2 border-2 border-white shadow-sm"></div>
+                        <div class="w-2 h-2 bg-black rounded-full mx-auto mt-2 border-2 border-white"></div>
                     </div>
                     <div class="brutal-card flex-1 p-4 rounded-2xl bg-white" @click="editItem(item)">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-[9px] bg-black text-white px-2 py-0.5 rounded font-black">{{ item.category }}</span>
-                            <button @click.stop="openMaps(item.title)" class="p-1.5 bg-blue-50 border-2 border-black rounded-lg brutal-btn">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[8px] bg-black text-white px-2 py-0.5 rounded font-black uppercase">{{ item.category }}</span>
+                            <button @click.stop="openMaps(item.title)" class="p-1 bg-blue-50 border-2 border-black rounded-md">
                                 <i data-lucide="navigation" class="w-3 h-3"></i>
                             </button>
                         </div>
-                        <h3 class="text-md font-black">{{ item.title }}</h3>
-                        <p v-if="item.note" class="text-xs mt-2 text-gray-500 italic font-medium leading-tight">"{{ item.note }}"</p>
+                        <h3 class="text-md font-black leading-tight">{{ item.title }}</h3>
+                        <p v-if="item.note" class="text-[10px] mt-2 text-gray-400 italic font-medium leading-tight">{{ item.note }}</p>
                     </div>
                 </div>
 
-                <div v-if="activeDate === '2026-01-01'" class="flex gap-4 items-start mb-8 relative z-10">
+                <div v-if="activeDate === '2026-01-01'" class="flex gap-4 items-start mb-6 relative z-10">
                     <div class="w-16 flex-shrink-0 text-center">
                         <p class="text-lg font-black leading-none">12:20</p>
-                        <p class="text-[10px] font-bold opacity-40">END</p>
+                        <p class="text-[8px] font-bold opacity-40">END</p>
                     </div>
-                    <div class="brutal-card flex-1 p-4 rounded-2xl bg-[#FFD700]">
+                    <div class="brutal-card flex-1 p-3 rounded-2xl bg-[#FFD700]">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="font-black text-xs">🐯 Tigerair IT0237</span>
-                            <i data-lucide="plane" class="w-4 h-4 rotate-180"></i>
+                            <span class="font-black text-[10px]">🐯 Tigerair IT0237</span>
+                            <i data-lucide="plane" class="w-3 h-3 rotate-180"></i>
                         </div>
-                        <h3 class="text-lg font-black">函館 HKD ➜ 桃園 TPE</h3>
-                        <p class="text-[10px] font-bold mt-1">預計抵達時間 16:00</p>
+                        <h3 class="text-md font-black italic">HKD ➜ TPE</h3>
                     </div>
-                </div>
-                
-                <div v-if="filteredSchedule.length === 0 && activeDate !== '2025-12-28' && activeDate !== '2026-01-01'" class="text-center py-20 opacity-20 font-black italic">
-                    還沒有安排行程喔...
                 </div>
             </div>
         </section>
 
         <section v-if="currentTab === 'shop'" class="space-y-4">
-            <div class="brutal-card p-4 rounded-2xl bg-white">
-                <h3 class="font-black mb-2 text-sm">免稅計算機</h3>
-                <div class="flex gap-2 mb-3">
+            <div class="brutal-card p-4 rounded-2xl bg-white shadow-inner">
+                <h3 class="font-black mb-2 text-sm italic">免稅小計算機</h3>
+                <div class="flex gap-2">
                     <input type="number" v-model.number="taxCalc.input" placeholder="金額" class="flex-1">
                     <select v-model="taxCalc.type" class="w-24">
                         <option value="C">消耗品</option>
                         <option value="G">一般品</option>
                     </select>
+                    <button @click="addTax" class="bg-black text-white px-3 rounded-lg font-black text-sm">加</button>
                 </div>
-                <button @click="addTax" class="brutal-card w-full py-2 pink-accent font-black brutal-btn mb-2">加入計算</button>
-                <div class="text-[11px] font-black text-gray-600">
-                    <span>消耗品: ¥{{taxCalc.sumC}} | 一般品: ¥{{taxCalc.sumG}}</span>
-                    <p class="text-blue-600 mt-1">預計退稅後: ¥{{calcTaxResult}} <span @click="resetTax" class="ml-2 underline cursor-pointer opacity-50">重置</span></p>
+                <div class="mt-2 text-[10px] font-black space-y-1">
+                    <p class="text-blue-600 text-xs">預計退稅後總和: ¥{{calcTaxResult}} <button @click="resetTax" class="ml-2 underline text-gray-400">重置</button></p>
                 </div>
             </div>
-            <div class="brutal-card p-3 rounded-2xl bg-blue-50">
-                <div class="grid grid-cols-2 gap-2 text-[10px] font-black">
+            <div class="brutal-card p-4 rounded-2xl bg-blue-50 text-[10px] font-black">
+                <div class="grid grid-cols-2 gap-x-4">
                     <div v-for="n in [1,3,5,10]" class="flex justify-between border-b border-blue-200">
                         <span>{{n*1000}}円</span><span>${{n*210}}</span>
                     </div>
@@ -133,19 +155,11 @@
         </section>
 
         <section v-if="currentTab === 'cost'" class="space-y-4">
-            <div class="brutal-card p-4 rounded-[30px] bg-white border-4">
-                <h3 class="font-black text-center text-xs mb-3">結算報表 (TWD)</h3>
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div class="bg-pink-50 p-2 rounded-xl border-2 border-black text-center">
-                        <p class="text-[8px] font-black">💗 支付</p><p class="text-sm font-black">${{ Math.round(splitReport.pinkPaid) }}</p>
-                    </div>
-                    <div class="bg-blue-50 p-2 rounded-xl border-2 border-black text-center">
-                        <p class="text-[8px] font-black">💙 支付</p><p class="text-sm font-black">${{ Math.round(splitReport.bluePaid) }}</p>
-                    </div>
-                </div>
-                <div class="pink-accent p-2 rounded-xl border-2 border-black text-center font-black">
-                    <p class="text-[10px] italic leading-none">{{ splitReport.message }}</p>
-                    <p class="text-xl">${{ Math.round(splitReport.diff) }}</p>
+            <div class="brutal-card p-5 rounded-[30px] bg-white border-4">
+                <h3 class="font-black text-center text-[10px] uppercase mb-2">Split Report (TWD)</h3>
+                <div class="pink-accent p-3 rounded-xl border-2 border-black text-center font-black">
+                    <p class="text-[10px] italic mb-1">{{ splitReport.message }}</p>
+                    <p class="text-2xl">${{ Math.round(splitReport.diff) }}</p>
                 </div>
             </div>
             <div class="space-y-2">
@@ -160,16 +174,16 @@
         </section>
     </main>
 
-    <div class="fixed bottom-6 left-0 right-0 px-8 z-40">
+    <div class="bottom-nav">
         <button @click="prepareNew" class="brutal-card pink-accent py-4 rounded-full font-black text-lg w-full brutal-btn shadow-[6px_6px_0px_#000]">
             + ADD RECORD
         </button>
     </div>
 
     <transition name="modal">
-        <div v-if="showModal" class="fixed inset-0 z-[100] flex flex-col justify-end">
+        <div v-if="showModal" class="fixed inset-0 z-[100] flex flex-col justify-end items-center">
             <div class="absolute inset-0 bg-black/60" @click="showModal = false"></div>
-            <div class="brutal-card bg-white w-full rounded-t-[40px] p-6 pb-12 z-10 max-h-[85vh] overflow-y-auto">
+            <div class="brutal-card bg-white w-full max-w-[430px] rounded-t-[40px] p-6 pb-12 z-10">
                 <div class="space-y-4">
                     <div class="flex gap-2">
                         <select v-model="form.category" class="flex-1"><option v-for="cat in activeCats" :value="cat">{{cat}}</option></select>
@@ -180,18 +194,18 @@
                         <input v-model.number="form.amount" type="number" placeholder="金額">
                         <input v-model="form.time" type="time">
                     </div>
-                    <div v-if="currentTab === 'cost'" class="brutal-card p-3 rounded-xl bg-gray-50 flex items-center justify-between">
-                        <span class="font-black text-xs">支付人:</span>
+                    <div v-if="currentTab === 'cost'" class="flex items-center justify-between text-xs font-black">
+                        <span>支付人:</span>
                         <div class="flex gap-4">
-                            <label class="flex items-center gap-1 font-black cursor-pointer"><input type="radio" v-model="form.payer" value="pink"> 💗</label>
-                            <label class="flex items-center gap-1 font-black cursor-pointer"><input type="radio" v-model="form.payer" value="blue"> 💙</label>
+                            <label><input type="radio" v-model="form.payer" value="pink"> 💗</label>
+                            <label><input type="radio" v-model="form.payer" value="blue"> 💙</label>
                         </div>
-                        <div class="flex items-center gap-1 font-black"><span class="text-[10px]">平攤?</span><input type="checkbox" v-model="form.isSplit"></div>
+                        <label>平攤?<input type="checkbox" v-model="form.isSplit" class="ml-1"></label>
                     </div>
                     <textarea v-model="form.note" placeholder="備註" rows="2"></textarea>
                     <div class="flex gap-3">
                         <button v-if="isEditing" @click="delItem" class="brutal-card bg-red-400 p-3 rounded-xl flex-1 font-black">刪除</button>
-                        <button @click="saveToCloud" class="brutal-card pink-accent p-3 rounded-xl flex-[2] font-black">存檔同步</button>
+                        <button @click="saveToCloud" class="brutal-card pink-accent p-3 rounded-xl flex-[2] font-black">同步</button>
                     </div>
                 </div>
             </div>
@@ -200,6 +214,7 @@
 </div>
 
 <script>
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCAxd41_3A4bnrI0M0n4Br0GK62zkKqIqY",
   authDomain: "hakodate-trip-app.firebaseapp.com",
@@ -242,7 +257,7 @@ createApp({
                 if (c.isSplit) { pS += twd/2; bS += twd/2; } else { if (c.payer === 'pink') pS += twd; else bS += twd; }
             });
             const diff = pP - pS;
-            return { pinkPaid: pP, bluePaid: bP, diff: Math.abs(diff), message: diff >= 0 ? "💙 應給 💗" : "💗 應給 💙" };
+            return { diff: Math.abs(diff), message: diff >= 0 ? "💙 應給 💗" : "💗 應給 💙" };
         });
 
         const calcTaxResult = computed(() => {
@@ -255,7 +270,7 @@ createApp({
         const addTax = () => { if(taxCalc.value.input){ if(taxCalc.value.type==='C') taxCalc.value.sumC+=taxCalc.value.input; else taxCalc.value.sumG+=taxCalc.value.input; taxCalc.value.input=null; } };
         const resetTax = () => { taxCalc.value.sumC=0; taxCalc.value.sumG=0; };
 
-        const prepareNew = () => { isEditing.value = false; form.value = { title:'', time:'12:00', amount:null, note:'', category:'美食', currency:'JPY', payer:'pink', isSplit: true }; showModal.value = true; };
+        const prepareNew = () => { isEditing.value = false; form.value = { title:'', time:'12:00', amount:null, category:'美食', currency:'JPY', payer:'pink', isSplit: true }; showModal.value = true; };
         const saveToCloud = () => {
             const path = currentTab.value === 'schedule' ? 'schedules' : 'costs';
             if(isEditing.value) db.ref(`${path}/${form.value.cid}`).update({...form.value, date: activeDate.value});
@@ -273,3 +288,4 @@ createApp({
 </script>
 </body>
 </html>
+
