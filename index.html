@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>函館冬之旅 - 專業版</title>
+    <title>函館冬之旅 - 時間軸版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,25 +11,27 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #E0F2FE; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #E0F2FE; margin: 0; padding: 0; }
         [v-cloak] { display: none; }
         .brutal-card { background: white; border: 3px solid #000; box-shadow: 4px 4px 0px #000; transition: all 0.1s; }
         .brutal-btn:active { box-shadow: 0px 0px 0px #000; transform: translate(2px, 2px); }
         .pink-accent { background-color: #FFB7C5; }
         .tab-active { background-color: #FFB7C5 !important; transform: translateY(-3px); }
         .curved-header { border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; }
-        input, select, textarea { border: 2px solid #000 !important; border-radius: 10px !important; padding: 8px; font-weight: bold; width: 100%; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        input, select, textarea { border: 2px solid #000 !important; border-radius: 10px !important; padding: 6px 10px; font-weight: bold; width: 100%; font-size: 14px; }
         .safe-pb { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
-        .flight-card { background: linear-gradient(135deg, #fff 0%, #fff 70%, #ffcc00 100%); border: 3px solid #000; box-shadow: 4px 4px 0px #000; }
+        
+        /* 時間軸裝飾線 */
+        .timeline-line { position: absolute; left: 2.25rem; top: 0; bottom: 0; width: 3px; background: #000; z-index: 0; }
     </style>
 </head>
 <body class="overflow-x-hidden">
 
 <div id="app" v-cloak>
-    <header class="relative bg-blue-400 h-40 curved-header border-b-4 border-black">
+    <header class="relative bg-blue-400 h-36 curved-header border-b-4 border-black">
         <div class="p-6">
-            <h1 class="text-2xl font-black text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)] italic uppercase">HAKODATE TRIP</h1>
-            <p class="text-white text-sm font-bold tracking-widest mt-1">12/28 - 01/01 ❄️</p>
+            <h1 class="text-xl font-black text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)] uppercase">HAKODATE TIMELINE</h1>
         </div>
         <div class="absolute -bottom-4 left-0 right-0 flex justify-center gap-2 px-4 z-20">
             <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
@@ -39,155 +41,157 @@
         </div>
     </header>
 
-    <main class="mt-10 px-4 safe-pb">
-        <section v-if="currentTab === 'schedule'" class="space-y-4">
-            <div class="flex overflow-x-auto gap-3 py-2 no-scrollbar">
+    <main class="mt-8 px-4 safe-pb">
+        <section v-if="currentTab === 'schedule'" class="relative space-y-8">
+            <div class="flex overflow-x-auto gap-3 py-2 no-scrollbar relative z-10">
                 <div v-for="d in dates" :key="d.fullDate" @click="activeDate = d.fullDate"
                     :class="['flex-shrink-0 brutal-card w-14 h-20 rounded-xl flex flex-col items-center justify-center cursor-pointer', activeDate === d.fullDate ? 'pink-accent' : 'bg-white']">
-                    <span class="text-xs font-black">{{ d.day }}</span>
+                    <span class="text-[10px] font-black uppercase">{{ d.day }}</span>
                     <span class="text-xl font-black">{{ d.date }}</span>
                 </div>
             </div>
 
-            <div v-if="activeDate === '2025-12-28'" class="flight-card p-4 rounded-2xl mb-4">
-                <div class="flex justify-between items-center border-b-2 border-black pb-2 mb-2">
-                    <span class="font-black text-sm text-orange-500">🐯 IT0236 (TPE-HKD)</span>
-                    <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded">06:45 - 11:10</span>
-                </div>
-                <div class="flex justify-around items-center opacity-50"><i data-lucide="plane" class="w-5 h-5"></i></div>
-            </div>
+            <div class="relative min-h-[400px]">
+                <div class="timeline-line opacity-20"></div>
 
-            <div v-if="activeDate === '2026-01-01'" class="flight-card p-4 rounded-2xl mb-4">
-                <div class="flex justify-between items-center border-b-2 border-black pb-2 mb-2">
-                    <span class="font-black text-sm text-orange-500">🐯 IT0237 (HKD-TPE)</span>
-                    <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded">12:20 - 16:00</span>
+                <div v-if="activeDate === '2025-12-28'" class="flex gap-4 items-start mb-8 relative z-10">
+                    <div class="w-16 flex-shrink-0 text-center">
+                        <p class="text-lg font-black leading-none">06:45</p>
+                        <p class="text-[10px] font-bold opacity-40">START</p>
+                    </div>
+                    <div class="brutal-card flex-1 p-4 rounded-2xl bg-[#FFD700]">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-black text-xs">🐯 Tigerair IT0236</span>
+                            <i data-lucide="plane" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="text-lg font-black">桃園 TPE ➜ 函館 HKD</h3>
+                        <p class="text-[10px] font-bold mt-1">預計抵達時間 11:10</p>
+                    </div>
                 </div>
-                <div class="flex justify-around items-center opacity-50"><i data-lucide="plane" class="w-5 h-5 rotate-180"></i></div>
-            </div>
 
-            <div v-for="item in filteredSchedule" :key="item.cid" class="brutal-card p-4 rounded-2xl bg-white mb-3" @click="editItem(item)">
-                <div class="flex justify-between items-start">
-                    <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded font-black uppercase">{{ item.category }}</span>
-                    <span class="text-xs font-black opacity-50">{{ item.time }}</span>
+                <div v-for="item in filteredSchedule" :key="item.cid" class="flex gap-4 items-start mb-8 relative z-10">
+                    <div class="w-16 flex-shrink-0 text-center">
+                        <p class="text-lg font-black leading-none">{{ item.time }}</p>
+                        <div class="w-2 h-2 bg-black rounded-full mx-auto mt-2 border-2 border-white shadow-sm"></div>
+                    </div>
+                    <div class="brutal-card flex-1 p-4 rounded-2xl bg-white" @click="editItem(item)">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-[9px] bg-black text-white px-2 py-0.5 rounded font-black">{{ item.category }}</span>
+                            <button @click.stop="openMaps(item.title)" class="p-1.5 bg-blue-50 border-2 border-black rounded-lg brutal-btn">
+                                <i data-lucide="navigation" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-md font-black">{{ item.title }}</h3>
+                        <p v-if="item.note" class="text-xs mt-2 text-gray-500 italic font-medium leading-tight">"{{ item.note }}"</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-black mt-1">{{ item.title }}</h3>
-                <p class="text-xs mt-2 border-t pt-2 opacity-70">{{ item.note }}</p>
+
+                <div v-if="activeDate === '2026-01-01'" class="flex gap-4 items-start mb-8 relative z-10">
+                    <div class="w-16 flex-shrink-0 text-center">
+                        <p class="text-lg font-black leading-none">12:20</p>
+                        <p class="text-[10px] font-bold opacity-40">END</p>
+                    </div>
+                    <div class="brutal-card flex-1 p-4 rounded-2xl bg-[#FFD700]">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-black text-xs">🐯 Tigerair IT0237</span>
+                            <i data-lucide="plane" class="w-4 h-4 rotate-180"></i>
+                        </div>
+                        <h3 class="text-lg font-black">函館 HKD ➜ 桃園 TPE</h3>
+                        <p class="text-[10px] font-bold mt-1">預計抵達時間 16:00</p>
+                    </div>
+                </div>
+                
+                <div v-if="filteredSchedule.length === 0 && activeDate !== '2025-12-28' && activeDate !== '2026-01-01'" class="text-center py-20 opacity-20 font-black italic">
+                    還沒有安排行程喔...
+                </div>
             </div>
         </section>
 
         <section v-if="currentTab === 'shop'" class="space-y-4">
-            <div class="brutal-card p-4 rounded-2xl bg-blue-50">
-                <h3 class="font-black text-center mb-2 italic">JPY ➜ TWD (0.21)</h3>
-                <div class="grid grid-cols-2 gap-x-6 text-sm font-black">
-                    <div v-for="n in [1,2,3,5,10]" class="flex justify-between border-b border-blue-200">
-                        <span>{{n*1000}}円</span><span>${{n*210}}</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="brutal-card p-4 rounded-2xl bg-white">
-                <h3 class="font-black mb-3 flex items-center gap-2"><i data-lucide="calculator" class="w-4 h-4"></i> 免稅計算機</h3>
+                <h3 class="font-black mb-2 text-sm">免稅計算機</h3>
                 <div class="flex gap-2 mb-3">
-                    <input type="number" v-model="taxCalc.input" placeholder="金額" class="flex-1">
+                    <input type="number" v-model.number="taxCalc.input" placeholder="金額" class="flex-1">
                     <select v-model="taxCalc.type" class="w-24">
-                        <option value="consumable">消耗品</option>
-                        <option value="general">一般品</option>
+                        <option value="C">消耗品</option>
+                        <option value="G">一般品</option>
                     </select>
                 </div>
-                <button @click="addTaxItem" class="brutal-card w-full py-2 pink-accent font-black brutal-btn mb-4">加入計算</button>
-                
-                <div class="space-y-1 text-sm font-black border-t-2 border-black pt-3">
-                    <div class="flex justify-between">
-                        <span>消耗品累計 (滿5000免稅):</span>
-                        <span :class="taxCalc.sumC >= 5000 ? 'text-green-600' : 'text-red-500'">¥{{taxCalc.sumC}}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>一般品累計 (滿5000免稅):</span>
-                        <span :class="taxCalc.sumG >= 5000 ? 'text-green-600' : 'text-red-500'">¥{{taxCalc.sumG}}</span>
-                    </div>
-                    <div class="flex justify-between text-lg mt-2 pt-2 border-t-2 border-dashed border-black">
-                        <span>預估退稅後總額:</span>
-                        <span class="text-blue-600">¥{{taxCalcTotal}}</span>
-                    </div>
-                    <button @click="resetTax" class="text-[10px] underline opacity-50 mt-2">重置計算機</button>
+                <button @click="addTax" class="brutal-card w-full py-2 pink-accent font-black brutal-btn mb-2">加入計算</button>
+                <div class="text-[11px] font-black text-gray-600">
+                    <span>消耗品: ¥{{taxCalc.sumC}} | 一般品: ¥{{taxCalc.sumG}}</span>
+                    <p class="text-blue-600 mt-1">預計退稅後: ¥{{calcTaxResult}} <span @click="resetTax" class="ml-2 underline cursor-pointer opacity-50">重置</span></p>
                 </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div v-for="item in shoppingList" :key="item.cid" @click="editItem(item)" class="brutal-card rounded-xl overflow-hidden bg-white">
-                    <div class="h-24 bg-gray-100"><img v-if="item.image" :src="item.image" class="w-full h-full object-cover"></div>
-                    <div class="p-2 font-black text-[10px] truncate">{{ item.title }}</div>
+            <div class="brutal-card p-3 rounded-2xl bg-blue-50">
+                <div class="grid grid-cols-2 gap-2 text-[10px] font-black">
+                    <div v-for="n in [1,3,5,10]" class="flex justify-between border-b border-blue-200">
+                        <span>{{n*1000}}円</span><span>${{n*210}}</span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section v-if="currentTab === 'cost'" class="space-y-4">
-            <div class="brutal-card p-5 rounded-[30px] bg-white text-center">
-                <div class="flex justify-around mb-2">
-                    <div class="flex flex-col items-center">
-                        <span class="text-2xl">💗</span>
-                        <span class="font-black italic text-sm">¥{{ splitStats.pink }}</span>
+            <div class="brutal-card p-4 rounded-[30px] bg-white border-4">
+                <h3 class="font-black text-center text-xs mb-3">結算報表 (TWD)</h3>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="bg-pink-50 p-2 rounded-xl border-2 border-black text-center">
+                        <p class="text-[8px] font-black">💗 支付</p><p class="text-sm font-black">${{ Math.round(splitReport.pinkPaid) }}</p>
                     </div>
-                    <div class="flex flex-col items-center">
-                        <span class="text-2xl">💙</span>
-                        <span class="font-black italic text-sm">¥{{ splitStats.blue }}</span>
+                    <div class="bg-blue-50 p-2 rounded-xl border-2 border-black text-center">
+                        <p class="text-[8px] font-black">💙 支付</p><p class="text-sm font-black">${{ Math.round(splitReport.bluePaid) }}</p>
                     </div>
                 </div>
-                <div class="border-t-2 border-black pt-2 font-black">
-                    <p class="text-[10px] opacity-50">總支出</p>
-                    <p class="text-2xl italic">¥{{ totalSpent }}</p>
+                <div class="pink-accent p-2 rounded-xl border-2 border-black text-center font-black">
+                    <p class="text-[10px] italic leading-none">{{ splitReport.message }}</p>
+                    <p class="text-xl">${{ Math.round(splitReport.diff) }}</p>
                 </div>
             </div>
-
-            <div v-for="c in costs" :key="c.cid" @click="editItem(c)" class="brutal-card p-4 rounded-2xl flex justify-between items-center bg-white">
-                <div class="flex items-center gap-3">
-                    <span class="text-xl">{{ c.payer === 'pink' ? '💗' : '💙' }}</span>
-                    <span class="font-black text-sm">{{ c.title }}</span>
+            <div class="space-y-2">
+                <div v-for="c in costs" :key="c.cid" @click="editItem(c)" class="brutal-card p-3 rounded-xl flex justify-between items-center bg-white">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">{{ c.payer === 'pink' ? '💗' : '💙' }}</span>
+                        <p class="font-black text-xs">{{ c.title }}</p>
+                    </div>
+                    <span class="font-black text-xs italic">{{ c.currency === 'JPY' ? '¥' : '$' }}{{ c.amount }}</span>
                 </div>
-                <span class="font-black italic">¥{{ c.amount }}</span>
             </div>
         </section>
     </main>
 
-    <div class="fixed bottom-6 left-0 right-0 px-6 z-40">
+    <div class="fixed bottom-6 left-0 right-0 px-8 z-40">
         <button @click="prepareNew" class="brutal-card pink-accent py-4 rounded-full font-black text-lg w-full brutal-btn shadow-[6px_6px_0px_#000]">
-            + NEW ITEM
+            + ADD RECORD
         </button>
     </div>
 
     <transition name="modal">
         <div v-if="showModal" class="fixed inset-0 z-[100] flex flex-col justify-end">
             <div class="absolute inset-0 bg-black/60" @click="showModal = false"></div>
-            <div class="brutal-card bg-white w-full rounded-t-[40px] p-6 pb-10 z-10">
-                <h3 class="font-black mb-4 underline italic">SYNC TO CLOUD</h3>
+            <div class="brutal-card bg-white w-full rounded-t-[40px] p-6 pb-12 z-10 max-h-[85vh] overflow-y-auto">
                 <div class="space-y-4">
-                    <select v-model="form.category"><option v-for="cat in activeCats" :value="cat">{{cat}}</option></select>
+                    <div class="flex gap-2">
+                        <select v-model="form.category" class="flex-1"><option v-for="cat in activeCats" :value="cat">{{cat}}</option></select>
+                        <select v-model="form.currency" class="w-24"><option value="JPY">JPY ¥</option><option value="TWD">TWD $</option></select>
+                    </div>
                     <input v-model="form.title" placeholder="項目名稱">
-                    
                     <div class="grid grid-cols-2 gap-3">
-                        <input v-model="form.amount" type="number" placeholder="金額 JPY">
+                        <input v-model.number="form.amount" type="number" placeholder="金額">
                         <input v-model="form.time" type="time">
                     </div>
-
-                    <div v-if="currentTab === 'cost'" class="flex items-center gap-4 py-2">
-                        <span class="font-black text-sm">支付人:</span>
-                        <label class="flex items-center gap-1 font-black cursor-pointer">
-                            <input type="radio" v-model="form.payer" value="pink" class="w-4 h-4"> 💗
-                        </label>
-                        <label class="flex items-center gap-1 font-black cursor-pointer">
-                            <input type="radio" v-model="form.payer" value="blue" class="w-4 h-4"> 💙
-                        </label>
+                    <div v-if="currentTab === 'cost'" class="brutal-card p-3 rounded-xl bg-gray-50 flex items-center justify-between">
+                        <span class="font-black text-xs">支付人:</span>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-1 font-black cursor-pointer"><input type="radio" v-model="form.payer" value="pink"> 💗</label>
+                            <label class="flex items-center gap-1 font-black cursor-pointer"><input type="radio" v-model="form.payer" value="blue"> 💙</label>
+                        </div>
+                        <div class="flex items-center gap-1 font-black"><span class="text-[10px]">平攤?</span><input type="checkbox" v-model="form.isSplit"></div>
                     </div>
-
-                    <div v-if="currentTab === 'shop'" @click="$refs.fInp.click()" class="brutal-card p-2 text-center text-[10px] font-black cursor-pointer">
-                        {{ form.image ? '✅ 照片已就緒' : '📷 上傳購物清單照' }}
-                        <input type="file" ref="fInp" class="hidden" @change="handleImg" accept="image/*">
-                    </div>
-                    <textarea v-model="form.note" placeholder="備註內容"></textarea>
-                    
+                    <textarea v-model="form.note" placeholder="備註" rows="2"></textarea>
                     <div class="flex gap-3">
-                        <button v-if="isEditing" @click="delItem" class="brutal-card bg-red-400 p-3 rounded-xl flex-1 font-black">DEL</button>
-                        <button @click="saveToCloud" class="brutal-card pink-accent p-3 rounded-xl flex-[2] font-black">SYNC</button>
+                        <button v-if="isEditing" @click="delItem" class="brutal-card bg-red-400 p-3 rounded-xl flex-1 font-black">刪除</button>
+                        <button @click="saveToCloud" class="brutal-card pink-accent p-3 rounded-xl flex-[2] font-black">存檔同步</button>
                     </div>
                 </div>
             </div>
@@ -196,7 +200,6 @@
 </div>
 
 <script>
-// Firebase 保持原樣
 const firebaseConfig = {
   apiKey: "AIzaSyCAxd41_3A4bnrI0M0n4Br0GK62zkKqIqY",
   authDomain: "hakodate-trip-app.firebaseapp.com",
@@ -218,74 +221,53 @@ createApp({
         const showModal = ref(false);
         const isEditing = ref(false);
         const form = ref({});
-        
         const schedules = ref([]);
         const costs = ref([]);
-        const shoppingList = ref([]);
-
-        // 免稅計算機狀態
-        const taxCalc = ref({ input: null, type: 'consumable', sumC: 0, sumG: 0 });
+        const taxCalc = ref({ input: null, type: 'C', sumC: 0, sumG: 0 });
 
         onMounted(() => {
             db.ref('schedules').on('value', s => { const v = s.val(); schedules.value = v ? Object.keys(v).map(k => ({...v[k], cid: k})) : []; });
             db.ref('costs').on('value', s => { const v = s.val(); costs.value = v ? Object.keys(v).map(k => ({...v[k], cid: k})) : []; });
-            db.ref('shopping').on('value', s => { const v = s.val(); shoppingList.value = v ? Object.keys(v).map(k => ({...v[k], cid: k})) : []; });
             lucide.createIcons();
         });
 
-        const filteredSchedule = computed(() => schedules.value.filter(s => s.date === activeDate.value).sort((a,b) => a.time.localeCompare(b.time)));
-        const totalSpent = computed(() => costs.value.reduce((s, c) => s + Number(c.amount || 0), 0));
+        const activeCats = computed(() => ['美食','景點','購物','交通','機酒','門票','住宿','其他']);
+        const filteredSchedule = computed(() => schedules.value.filter(s => s.date === activeDate.value).sort((a,b) => (a.time||'').localeCompare(b.time||'')));
         
-        const splitStats = computed(() => {
-            return costs.value.reduce((acc, c) => {
-                acc[c.payer === 'blue' ? 'blue' : 'pink'] += Number(c.amount || 0);
-                return acc;
-            }, { pink: 0, blue: 0 });
+        const splitReport = computed(() => {
+            let pP = 0, bP = 0, pS = 0, bS = 0;
+            costs.value.forEach(c => {
+                const twd = c.currency === 'JPY' ? c.amount * 0.21 : c.amount;
+                if (c.payer === 'pink') pP += twd; else bP += twd;
+                if (c.isSplit) { pS += twd/2; bS += twd/2; } else { if (c.payer === 'pink') pS += twd; else bS += twd; }
+            });
+            const diff = pP - pS;
+            return { pinkPaid: pP, bluePaid: bP, diff: Math.abs(diff), message: diff >= 0 ? "💙 應給 💗" : "💗 應給 💙" };
         });
 
-        const taxCalcTotal = computed(() => {
-            let total = 0;
-            total += taxCalc.value.sumC >= 5000 ? taxCalc.value.sumC * 0.909 : taxCalc.value.sumC;
-            total += taxCalc.value.sumG >= 5000 ? taxCalc.value.sumG * 0.909 : taxCalc.value.sumG;
-            return Math.round(total);
+        const calcTaxResult = computed(() => {
+            let r = 0;
+            r += taxCalc.value.sumC >= 5000 ? taxCalc.value.sumC * 0.909 : taxCalc.value.sumC;
+            r += taxCalc.value.sumG >= 5000 ? taxCalc.value.sumG * 0.909 : taxCalc.value.sumG;
+            return Math.round(r);
         });
 
-        const activeCats = computed(() => {
-            if(currentTab.value === 'schedule') return ['景點','美食','住宿','交通','其他'];
-            return ['飲食','藥妝','電器','購物','其他'];
-        });
+        const addTax = () => { if(taxCalc.value.input){ if(taxCalc.value.type==='C') taxCalc.value.sumC+=taxCalc.value.input; else taxCalc.value.sumG+=taxCalc.value.input; taxCalc.value.input=null; } };
+        const resetTax = () => { taxCalc.value.sumC=0; taxCalc.value.sumG=0; };
 
-        const addTaxItem = () => {
-            if(!taxCalc.value.input) return;
-            if(taxCalc.value.type === 'consumable') taxCalc.value.sumC += taxCalc.value.input;
-            else taxCalc.value.sumG += taxCalc.value.input;
-            taxCalc.value.input = null;
-        };
-        const resetTax = () => { taxCalc.value.sumC = 0; taxCalc.value.sumG = 0; };
-
-        const prepareNew = () => { 
-            isEditing.value = false; 
-            form.value = { title:'', time:'10:00', amount:0, note:'', category: activeCats.value[0], payer: 'pink' }; 
-            showModal.value = true; 
-        };
+        const prepareNew = () => { isEditing.value = false; form.value = { title:'', time:'12:00', amount:null, note:'', category:'美食', currency:'JPY', payer:'pink', isSplit: true }; showModal.value = true; };
         const saveToCloud = () => {
-            const path = currentTab.value === 'schedule' ? 'schedules' : (currentTab.value === 'cost' ? 'costs' : 'shopping');
+            const path = currentTab.value === 'schedule' ? 'schedules' : 'costs';
             if(isEditing.value) db.ref(`${path}/${form.value.cid}`).update({...form.value, date: activeDate.value});
             else db.ref(path).push({...form.value, date: activeDate.value, id: Date.now()});
             showModal.value = false;
         };
         const editItem = (item) => { isEditing.value = true; form.value = { ...item }; showModal.value = true; };
-        const delItem = () => { if(confirm('刪除同步資料？')) { const path = currentTab.value === 'schedule' ? 'schedules' : (currentTab.value === 'cost' ? 'costs' : 'shopping'); db.ref(`${path}/${form.value.cid}`).remove(); showModal.value = false; } };
-        const handleImg = (e) => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = (ev) => { form.value.image = ev.target.result; }; reader.readAsDataURL(file); };
-        
+        const delItem = () => { if(confirm('刪除？')) { const path = currentTab.value === 'schedule' ? 'schedules' : 'costs'; db.ref(`${path}/${form.value.cid}`).remove(); showModal.value = false; } };
+        const openMaps = (n) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(n)}`, '_blank');
         watch([currentTab, showModal], () => nextTick(() => lucide.createIcons()));
 
-        return { 
-            currentTab, activeDate, showModal, isEditing, form, schedules, costs, shoppingList, filteredSchedule, totalSpent, splitStats,
-            activeCats, taxCalc, taxCalcTotal, addTaxItem, resetTax, prepareNew, saveToCloud, editItem, delItem, handleImg,
-            tabs: [{id:'schedule',icon:'map'}, {id:'shop',icon:'shopping-basket'}, {id:'cost',icon:'banknote'}],
-            dates: [{day:'Sun',date:'28',fullDate:'2025-12-28'},{day:'Mon',date:'29',fullDate:'2025-12-29'},{day:'Tue',date:'30',fullDate:'2025-12-30'},{day:'Wed',date:'31',fullDate:'2025-12-31'},{day:'Thu',date:'01',fullDate:'2026-01-01'}] 
-        };
+        return { currentTab, activeDate, showModal, isEditing, form, schedules, costs, filteredSchedule, splitReport, activeCats, taxCalc, calcTaxResult, addTax, resetTax, prepareNew, saveToCloud, editItem, delItem, openMaps, tabs: [{id:'schedule',icon:'map'}, {id:'shop',icon:'shopping-basket'}, {id:'cost',icon:'banknote'}], dates: [{day:'Sun',date:'28',fullDate:'2025-12-28'},{day:'Mon',date:'29',fullDate:'2025-12-29'},{day:'Tue',date:'30',fullDate:'2025-12-30'},{day:'Wed',date:'31',fullDate:'2025-12-31'},{day:'Thu',date:'01',fullDate:'2026-01-01'}] };
     }
 }).mount('#app');
 </script>
